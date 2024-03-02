@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jaswdr/faker/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,9 +22,10 @@ func TestNewCampaign(t *testing.T) {
 
 	now := time.Now().Add(-time.Minute)
 
-	campaign, _ := campaign.NewCampaign(name, content, emails)
+	campaign, err := campaign.NewCampaign(name, content, emails)
 
 	assert.NotNil(campaign.ID)
+	assert.Nil(err)
 	assert.Equal(name, campaign.Name)
 	assert.Equal(content, campaign.Content)
 	assert.Greater(campaign.CreatedAt, now)
@@ -48,14 +50,14 @@ func TestNewCampaignNameContentError(t *testing.T) {
 
 	assert := assert.New(t)
 
-	campaign, err := campaign.NewCampaign("", "", emails)
+	campaign, err := campaign.NewCampaign("1", "1", emails)
 
 	assert.Nil(campaign)
 	assert.Equal(err, constants.ErrStringMinLength)
 
 }
 
-func TestNewCampaignNameContentError2(t *testing.T) {
+func TestNewCampaignMinNameContentError2(t *testing.T) {
 
 	assert := assert.New(t)
 
@@ -66,24 +68,63 @@ func TestNewCampaignNameContentError2(t *testing.T) {
 
 }
 
-func TestNewCampaignNameContentError3(t *testing.T) {
+func TestNewCampaignMinNameContentError3(t *testing.T) {
 
 	assert := assert.New(t)
 
-	campaign, err := campaign.NewCampaign("", "a", emails)
+	campaign, err := campaign.NewCampaign("a", "a", emails)
 
 	assert.Nil(campaign)
 	assert.Equal(err, constants.ErrStringMinLength)
 }
 
+func TestNewCampaignMaxNameContentError(t *testing.T) {
+
+	assert := assert.New(t)
+	fake := faker.New()
+
+	campaign, err := campaign.NewCampaign(fake.Lorem().Text(102), fake.Lorem().Text(501), emails)
+
+	assert.Nil(campaign)
+	assert.Equal(err, constants.ErrStringMaxLength)
+}
+
+func TestNewCampaignMaxNameContentError2(t *testing.T) {
+
+	assert := assert.New(t)
+	fake := faker.New()
+
+	campaign, err := campaign.NewCampaign(name, fake.Lorem().Text(503), emails)
+
+	assert.Nil(campaign)
+	assert.Equal(err, constants.ErrStringMaxLength)
+}
+
+func TestNewCampaignMaxNameContentError3(t *testing.T) {
+
+	assert := assert.New(t)
+	fake := faker.New()
+
+	campaign, err := campaign.NewCampaign(fake.Lorem().Text(102), content, emails)
+
+	assert.Nil(campaign)
+	assert.Equal(err, constants.ErrStringMaxLength)
+}
+
 func TestNewCampaignInvalidEmailError(t *testing.T) {
 	assert := assert.New(t)
-
-	name := "Test Campaign"
-	content := "Test Content"
 
 	campaign, err := campaign.NewCampaign(name, content, []string{"invalidEmail"})
 
 	assert.Nil(campaign)
 	assert.Equal(err, constants.ErrInvalidEmail)
+}
+
+func TestNewCampaignInvalidEmailError2(t *testing.T) {
+	assert := assert.New(t)
+
+	campaign, err := campaign.NewCampaign(name, content, []string{})
+
+	assert.Nil(campaign)
+	assert.Equal(err, constants.ErrStringMinLength)
 }

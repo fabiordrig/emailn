@@ -8,4 +8,5 @@ var (
 	ErrInvalidEmail              = errors.New("invalid email")
 	ErrStringMinLength           = errors.New("the minimum length is not met")
 	ErrStringMaxLength           = errors.New("the maximum length is exceeded")
+	ErrUnknown                   = errors.New("unknown error")
 )

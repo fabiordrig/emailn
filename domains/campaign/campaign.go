@@ -8,15 +8,15 @@ import (
 )
 
 type Contact struct {
-	Email string `validate:"email"`
+	Email string `validate:"required,email"`
 }
 
 // Campaign is a struct that represents a campaign
 type Campaign struct {
 	ID        uuid.UUID `validate:"required"`
-	Name      string    `validate:"min=2,max=50,required"`
+	Name      string    `validate:"required,min=2,max=50"`
 	CreatedAt time.Time `validate:"required"`
-	Content   string    `validate:"min=2,max=500,required"`
+	Content   string    `validate:"required,min=2,max=500"`
 	Contacts  []Contact `validate:"min=1,dive"`
 }
 

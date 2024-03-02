@@ -28,7 +28,7 @@ func ValidateStruct(obj interface{}) error {
 		return constants.ErrStringMinLength
 	case "max":
 		return constants.ErrStringMaxLength
-
 	}
-	return nil
+
+	return constants.ErrUnknown
 }
