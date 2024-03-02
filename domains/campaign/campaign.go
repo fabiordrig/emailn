@@ -1,7 +1,7 @@
-package domain
+package campaign
 
 import (
-	"errors"
+	"emailn/domains"
 	"net/mail"
 	"strings"
 	"time"
@@ -10,16 +10,16 @@ import (
 )
 
 type Contact struct {
-	Email string
+	Email string `validate:"email,required"`
 }
 
 // Campaign is a struct that represents a campaign
 type Campaign struct {
-	ID        uuid.UUID
-	Name      string
-	CreatedAt time.Time
-	Content   string
-	Contacts  []Contact
+	ID        uuid.UUID `validate:"required"`
+	Name      string    `validate:"min=2,max=50,required"`
+	CreatedAt time.Time `validate:"required"`
+	Content   string    `validate:"min=2,max=500,required"`
+	Contacts  []Contact `validate:"min=1,required"`
 }
 
 func NewCampaign(name, content string, emails []string) (*Campaign, error) {
@@ -27,17 +27,17 @@ func NewCampaign(name, content string, emails []string) (*Campaign, error) {
 	contacts := make([]Contact, len(emails))
 
 	if len(emails) == 0 {
-		return nil, errors.New("at least one email is required")
+		return nil, domains.ErrAtLeastOneEmailIsRequired
 	}
 
 	if name == "" || content == "" {
-		return nil, errors.New("name and content are required")
+		return nil, domains.ErrNameAndContentAreRequired
 	}
 
 	emailList := strings.Join(emails, ", ")
 
 	if _, err := mail.ParseAddressList(emailList); err != nil {
-		return nil, errors.New("invalid email")
+		return nil, domains.ErrInvalidEmail
 	}
 
 	for i, email := range emails {
