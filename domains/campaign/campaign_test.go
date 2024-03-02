@@ -1,6 +1,7 @@
 package campaign_test
 
 import (
+	"emailn/constants"
 	"emailn/domains/campaign"
 	"testing"
 	"time"
@@ -36,10 +37,10 @@ func TestNewCampaignEmailError(t *testing.T) {
 
 	assert := assert.New(t)
 
-	campaign, err := campaign.NewCampaign(name, content, []string{})
+	campaign, err := campaign.NewCampaign(name, content, []string{"invalidEmail"})
 
 	assert.Nil(campaign)
-	assert.Equal(err.Error(), "at least one email is required")
+	assert.Equal(err, constants.ErrInvalidEmail)
 
 }
 
@@ -50,17 +51,39 @@ func TestNewCampaignNameContentError(t *testing.T) {
 	campaign, err := campaign.NewCampaign("", "", emails)
 
 	assert.Nil(campaign)
-	assert.Equal(err.Error(), "name and content are required")
+	assert.Equal(err, constants.ErrStringMinLength)
 
 }
 
-func TestNewCampaignInvalidEmailError(t *testing.T) {
+func TestNewCampaignNameContentError2(t *testing.T) {
 
 	assert := assert.New(t)
 
-	campaign, err := campaign.NewCampaign(name, content, []string{"invalid"})
+	campaign, err := campaign.NewCampaign("a", "", emails)
 
 	assert.Nil(campaign)
-	assert.Equal(err.Error(), "invalid email")
+	assert.Equal(err, constants.ErrStringMinLength)
 
+}
+
+func TestNewCampaignNameContentError3(t *testing.T) {
+
+	assert := assert.New(t)
+
+	campaign, err := campaign.NewCampaign("", "a", emails)
+
+	assert.Nil(campaign)
+	assert.Equal(err, constants.ErrStringMinLength)
+}
+
+func TestNewCampaignInvalidEmailError(t *testing.T) {
+	assert := assert.New(t)
+
+	name := "Test Campaign"
+	content := "Test Content"
+
+	campaign, err := campaign.NewCampaign(name, content, []string{"invalidEmail"})
+
+	assert.Nil(campaign)
+	assert.Equal(err, constants.ErrInvalidEmail)
 }

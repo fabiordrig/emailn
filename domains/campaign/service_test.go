@@ -1,8 +1,9 @@
-package campaign
+package campaign_test
 
 import (
+	"emailn/constants"
 	"emailn/contracts"
-	"emailn/domains"
+	"emailn/domains/campaign"
 	"errors"
 	"testing"
 
@@ -14,7 +15,7 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) Save(campaign *Campaign) error {
+func (m *MockRepository) Save(campaign *campaign.Campaign) error {
 	args := m.Called(campaign)
 	return args.Error(0)
 }
@@ -26,7 +27,7 @@ var (
 		Emails:  []string{"test@t.com"},
 	}
 	repoMock = new(MockRepository)
-	service  = NewService(repoMock)
+	service  = campaign.NewService(repoMock)
 )
 
 func TestCreateCampaign(t *testing.T) {
@@ -48,7 +49,7 @@ func TestCreateCampaign(t *testing.T) {
 func TestSaveCampaign(t *testing.T) {
 	assert := assert.New(t)
 
-	repoMock.On("Save", mock.MatchedBy(func(campaign *Campaign) bool {
+	repoMock.On("Save", mock.MatchedBy(func(campaign *campaign.Campaign) bool {
 
 		if campaign.Name != newCampaign.Name {
 			return false
@@ -75,7 +76,7 @@ func TestSaveCampaignError(t *testing.T) {
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("Save", mock.Anything).Return(errors.New("error"))
 
-	errorService := NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock)
 
 	_, err := errorService.Create(newCampaign)
 
@@ -92,6 +93,6 @@ func TestCreateCampaignError(t *testing.T) {
 
 	_, err := service.Create(newCampaign)
 
-	assert.Equal(err, domains.ErrInvalidEmail)
+	assert.Equal(err, constants.ErrInvalidEmail)
 
 }
