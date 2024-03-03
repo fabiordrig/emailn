@@ -1,1 +1,5 @@
-# go-training
+# EmailN
+
+
+
+Service to send emails from anywhere
