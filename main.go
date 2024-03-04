@@ -3,20 +3,17 @@ package main
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/render"
 )
 
 func main() {
 	r := chi.NewRouter()
 
-	r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
-		param := chi.URLParam(r, "id")
-
-		render.JSON(w, r, param)
-
-	})
-
-	http.ListenAndServe(":3002", r)
+	http.ListenAndServe(":8000", r)
 }
