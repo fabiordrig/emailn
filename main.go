@@ -1,8 +1,11 @@
 package main
 
 import (
+	"emailn/constants"
 	"emailn/contracts"
 	"emailn/domains/campaign"
+	"emailn/infra/database"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/middleware"
@@ -18,7 +21,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	service := campaign.Service{}
+	service := campaign.NewService(&database.CampaignRepository{})
 
 	r.Post("/campaigns", func(w http.ResponseWriter, r *http.Request) {
 
@@ -28,11 +31,19 @@ func main() {
 		campaign, err := service.Create(payload)
 
 		if err != nil {
-			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, map[string]string{
-				"error": err.Error(),
-			})
-			return
+			if errors.Is(err, constants.ErrInternalServer) {
+				render.Status(r, http.StatusInternalServerError)
+				render.JSON(w, r, map[string]string{
+					"error": err.Error(),
+				})
+				return
+			} else {
+				render.Status(r, http.StatusBadRequest)
+				render.JSON(w, r, map[string]string{
+					"error": err.Error(),
+				})
+				return
+			}
 		}
 
 		render.Status(r, http.StatusCreated)
@@ -45,4 +56,5 @@ func main() {
 	})
 
 	http.ListenAndServe(":8000", r)
+
 }
