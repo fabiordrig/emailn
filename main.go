@@ -20,11 +20,11 @@ func main() {
 
 	service := campaign.NewService(&database.CampaignRepository{})
 	handler := routes.Handler{
-		CampaignService: *service,
+		CampaignService: service,
 	}
 
-	r.Post("/campaigns", handler.HandlerError(handler.CreateCampaign))
-	r.Get("/campaigns", handler.HandlerError(handler.FindALlCampaigns))
+	r.Post("/campaigns", routes.HandlerError(handler.CreateCampaign))
+	r.Get("/campaigns", routes.HandlerError(handler.FindALlCampaigns))
 
 	http.ListenAndServe(":8000", r)
 

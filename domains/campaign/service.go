@@ -2,15 +2,20 @@ package campaign
 
 import "emailn/contracts"
 
-type Service struct {
+type Service interface {
+	Create(newCampaign contracts.NewCampaign) (*Campaign, error)
+	FindAll() ([]Campaign, error)
+}
+
+type ServiceImp struct {
 	Repository Repository
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{Repository: repo}
+func NewService(repo Repository) *ServiceImp {
+	return &ServiceImp{Repository: repo}
 }
 
-func (s *Service) Create(newCampaign contracts.NewCampaign) (*Campaign, error) {
+func (s *ServiceImp) Create(newCampaign contracts.NewCampaign) (*Campaign, error) {
 	campaign, err := NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails)
 
 	if err != nil {
@@ -26,6 +31,6 @@ func (s *Service) Create(newCampaign contracts.NewCampaign) (*Campaign, error) {
 	return campaign, nil
 }
 
-func (s *Service) FindAll() ([]Campaign, error) {
+func (s *ServiceImp) FindAll() ([]Campaign, error) {
 	return s.Repository.FindAll()
 }

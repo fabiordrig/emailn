@@ -14,25 +14,27 @@ func (h *Handler) CreateCampaign(w http.ResponseWriter, r *http.Request) (interf
 
 	campaign, err := h.CampaignService.Create(payload)
 
-	if err == nil {
-		return map[string]string{
-			"id":        campaign.ID.String(),
-			"name":      campaign.Name,
-			"createdAt": campaign.CreatedAt.String(),
-			"content":   campaign.Content,
-		}, http.StatusCreated, err
+	if err != nil {
+		return nil, http.StatusBadRequest, err
 	}
-	return campaign, http.StatusBadRequest, err
+
+	return map[string]string{
+		"id":        campaign.ID.String(),
+		"name":      campaign.Name,
+		"createdAt": campaign.CreatedAt.String(),
+		"content":   campaign.Content,
+	}, http.StatusCreated, err
 
 }
 
 func (h *Handler) FindALlCampaigns(w http.ResponseWriter, r *http.Request) (interface{}, int, error) {
 	campaigns, err := h.CampaignService.FindAll()
 
-	if err == nil {
-		return campaigns, http.StatusOK, nil
+	if err != nil {
+
+		return nil, http.StatusNotFound, err
 	}
 
-	return campaigns, http.StatusNotFound, err
+	return campaigns, http.StatusOK, nil
 
 }

@@ -15,7 +15,7 @@ type Handler struct {
 
 type RouterFunc func(w http.ResponseWriter, r *http.Request) (interface{}, int, error)
 
-func (h *Handler) HandlerError(handler RouterFunc) http.HandlerFunc {
+func HandlerError(handler RouterFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		obj, status, err := handler(w, r)
 
