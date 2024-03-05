@@ -8,6 +8,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/jaswdr/faker/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -24,7 +25,12 @@ func (m *MockRepository) Save(campaign *campaign.Campaign) error {
 
 func (m *MockRepository) FindAll() ([]campaign.Campaign, error) {
 	args := m.Called()
-	return args.Get(0).([]campaign.Campaign), nil
+	return args.Get(0).([]campaign.Campaign), args.Error(1)
+}
+
+func (m *MockRepository) FindByID(id string) (*campaign.Campaign, error) {
+	args := m.Called(id)
+	return args.Get(0).(*campaign.Campaign), args.Error(1)
 }
 
 var (
@@ -233,4 +239,82 @@ func TestValidateStructUnknownTagError(t *testing.T) {
 	err := domains.ValidateStruct(obj)
 
 	assert.Equal(constants.ErrUnknown, err)
+}
+
+func TestFindAllCampaignCorrect(t *testing.T) {
+	assert := assert.New(t)
+	fake := faker.New()
+
+	mockedCampaigns := []campaign.Campaign{
+		{
+			ID:      uuid.New(),
+			Name:    fake.Lorem().Text(10),
+			Content: fake.Lorem().Text(400),
+			Contacts: []campaign.Contact{
+				{
+					Email: fake.Internet().Email(),
+				},
+			},
+		},
+	}
+
+	repoMock.On("FindAll").Return(mockedCampaigns, nil)
+
+	campaigns, err := service.FindAll()
+
+	assert.Nil(err)
+
+	assert.Len(campaigns, 1)
+
+}
+
+func TestFindAllCampaignError(t *testing.T) {
+	assert := assert.New(t)
+
+	errorRepoMock := new(MockRepository)
+	errorRepoMock.On("FindAll").Return([]campaign.Campaign{}, errors.New("error"))
+
+	errorService := campaign.NewService(errorRepoMock)
+
+	_, err := errorService.FindAll()
+
+	assert.Equal(err, errors.New("error"))
+}
+
+func TestFindCampaignByIDCorrect(t *testing.T) {
+	assert := assert.New(t)
+	fake := faker.New()
+
+	mockedCampaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Lorem().Text(10),
+		Content: fake.Lorem().Text(400),
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+
+	repoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
+
+	campaign, err := service.FindByID(uuid.New().String())
+
+	assert.Nil(err)
+
+	assert.Equal(mockedCampaign, *campaign)
+
+}
+
+func TestFindCampaignByIDError(t *testing.T) {
+	assert := assert.New(t)
+
+	errorRepoMock := new(MockRepository)
+	errorRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
+
+	errorService := campaign.NewService(errorRepoMock)
+
+	_, err := errorService.FindByID(uuid.New().String())
+
+	assert.Equal(err, errors.New("error"))
 }

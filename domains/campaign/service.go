@@ -5,6 +5,7 @@ import "emailn/contracts"
 type Service interface {
 	Create(newCampaign contracts.NewCampaign) (*Campaign, error)
 	FindAll() ([]Campaign, error)
+	FindByID(id string) (*Campaign, error)
 }
 
 type ServiceImp struct {
@@ -33,4 +34,8 @@ func (s *ServiceImp) Create(newCampaign contracts.NewCampaign) (*Campaign, error
 
 func (s *ServiceImp) FindAll() ([]Campaign, error) {
 	return s.Repository.FindAll()
+}
+
+func (s *ServiceImp) FindByID(id string) (*Campaign, error) {
+	return s.Repository.FindByID(id)
 }

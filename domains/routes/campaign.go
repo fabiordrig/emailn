@@ -38,3 +38,17 @@ func (h *Handler) FindALlCampaigns(w http.ResponseWriter, r *http.Request) (inte
 	return campaigns, http.StatusOK, nil
 
 }
+
+func (h *Handler) FindCampaignByID(w http.ResponseWriter, r *http.Request) (interface{}, int, error) {
+
+	id := r.PathValue("id")
+
+	campaign, err := h.CampaignService.FindByID(id)
+
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+
+	return campaign, http.StatusOK, nil
+
+}

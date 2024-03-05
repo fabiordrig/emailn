@@ -32,6 +32,11 @@ func (m *mockService) FindAll() ([]campaign.Campaign, error) {
 	return args.Get(0).([]campaign.Campaign), args.Error(1)
 }
 
+func (m *mockService) FindByID(id string) (*campaign.Campaign, error) {
+	args := m.Called(id)
+	return args.Get(0).(*campaign.Campaign), args.Error(1)
+}
+
 func TestCreateCampaignShouldCreateACampaign(t *testing.T) {
 	assert := assert.New(t)
 
@@ -158,6 +163,62 @@ func TestFindAllCampaignsShouldReturnNotFoundWhenServiceReturnError(t *testing.T
 	rr := httptest.NewRecorder()
 
 	response, status, err := handler.FindALlCampaigns(rr, req)
+
+	assert.Equal(http.StatusNotFound, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+
+}
+
+func TestFindCampaignByIDShouldReturnCampaign(t *testing.T) {
+	assert := assert.New(t)
+	fake := faker.New()
+
+	serviceMock := new(mockService)
+	campaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Beer().Name(),
+		Content: fake.Beer().Alcohol(),
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+
+	serviceMock.On("FindByID", mock.Anything).Return(&campaign, nil)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("GET", "/campaigns/"+campaign.ID.String(), nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.FindCampaignByID(rr, req)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusOK, status)
+	assert.Equal(&campaign, response)
+
+}
+
+func TestFindCampaignByIDShouldReturnNotFoundWhenServiceReturnError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("FindByID", mock.Anything).Return(
+		&campaign.Campaign{},
+		errors.New("error"),
+	)
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("GET", "/campaigns/"+uuid.New().String(), nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.FindCampaignByID(rr, req)
 
 	assert.Equal(http.StatusNotFound, status)
 	assert.NotNil(err)

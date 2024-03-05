@@ -7,6 +7,13 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	PENDING     = "PENDING"
+	IN_PROGRESS = "IN_PROGRESS"
+	CANCELED    = "CANCELED"
+	DONE        = "DONE"
+)
+
 type Contact struct {
 	Email string `validate:"required,email"`
 }
@@ -15,6 +22,7 @@ type Contact struct {
 type Campaign struct {
 	ID        uuid.UUID `validate:"required"`
 	Name      string    `validate:"required,min=2,max=50"`
+	Status    string    `validate:"required,oneof=PENDING IN_PROGRESS CANCELED DONE"`
 	CreatedAt time.Time `validate:"required"`
 	Content   string    `validate:"required,min=2,max=500"`
 	Contacts  []Contact `validate:"min=1,dive"`
@@ -31,6 +39,7 @@ func NewCampaign(name, content string, emails []string) (*Campaign, error) {
 	campaign := &Campaign{
 		ID:        uuid.New(),
 		Name:      name,
+		Status:    PENDING,
 		CreatedAt: time.Now(),
 		Content:   content,
 		Contacts:  contacts,

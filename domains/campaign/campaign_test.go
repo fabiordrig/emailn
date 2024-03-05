@@ -29,6 +29,7 @@ func TestNewCampaign(t *testing.T) {
 	assert.Equal(name, campaign.Name)
 	assert.Equal(content, campaign.Content)
 	assert.Greater(campaign.CreatedAt, now)
+	assert.Equal("PENDING", campaign.Status)
 	assert.Len(campaign.Contacts, 2)
 	assert.Equal(emails[0], campaign.Contacts[0].Email)
 	assert.Equal(emails[1], campaign.Contacts[1].Email)
