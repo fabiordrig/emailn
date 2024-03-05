@@ -3,11 +3,11 @@ package campaign
 import "emailn/contracts"
 
 type Service struct {
-	repo Repository
+	Repository Repository
 }
 
 func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+	return &Service{Repository: repo}
 }
 
 func (s *Service) Create(newCampaign contracts.NewCampaign) (*Campaign, error) {
@@ -17,11 +17,15 @@ func (s *Service) Create(newCampaign contracts.NewCampaign) (*Campaign, error) {
 		return nil, err
 	}
 
-	err = s.repo.Save(campaign)
+	err = s.Repository.Save(campaign)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return campaign, nil
+}
+
+func (s *Service) FindAll() ([]Campaign, error) {
+	return s.Repository.FindAll()
 }
