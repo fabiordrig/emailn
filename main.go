@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -18,7 +19,10 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	service := campaign.NewService(&database.CampaignRepository{})
+	db := database.NewDb()
+	service := campaign.NewService(&database.CampaignRepository{
+		Db: db,
+	})
 	handler := routes.Handler{
 		CampaignService: service,
 	}
