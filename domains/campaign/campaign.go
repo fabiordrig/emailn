@@ -15,29 +15,33 @@ const (
 )
 
 type Contact struct {
-	Email string `validate:"required,email"`
+	ID         uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key" validate:"required"`
+	Email      string    `gorm:"size:60" validate:"required,email"`
+	CampaignID uuid.UUID
 }
 
 // Campaign is a struct that represents a campaign
 type Campaign struct {
-	ID        uuid.UUID `validate:"required"`
-	Name      string    `validate:"required,min=2,max=50"`
-	Status    string    `validate:"required,oneof=PENDING IN_PROGRESS CANCELED DONE"`
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key" validate:"required"`
+	Name      string    `gorm:"size:60" validate:"required,min=2,max=50"`
+	Status    string    `gorm:"size:20" validate:"required,oneof=PENDING IN_PROGRESS CANCELED DONE"`
 	CreatedAt time.Time `validate:"required"`
-	Content   string    `validate:"required,min=2,max=500"`
+	Content   string    `gorm:"size:2000" validate:"required,min=2,max=500"`
 	Contacts  []Contact `validate:"min=1,dive"`
 }
 
 func NewCampaign(name, content string, emails []string) (*Campaign, error) {
 
 	contacts := make([]Contact, len(emails))
+	id := uuid.New()
 
 	for i, email := range emails {
-		contacts[i] = Contact{Email: email}
+		contacts[i] = Contact{Email: email, ID: uuid.New(), CampaignID: id}
+
 	}
 
 	campaign := &Campaign{
-		ID:        uuid.New(),
+		ID:        id,
 		Name:      name,
 		Status:    PENDING,
 		CreatedAt: time.Now(),
