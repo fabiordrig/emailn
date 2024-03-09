@@ -10,7 +10,7 @@ import (
 const (
 	PENDING     = "PENDING"
 	IN_PROGRESS = "IN_PROGRESS"
-	CANCELED    = "CANCELED"
+	CANCELLED   = "CANCELLED"
 	DONE        = "DONE"
 )
 
@@ -24,10 +24,14 @@ type Contact struct {
 type Campaign struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key" validate:"required"`
 	Name      string    `gorm:"size:60" validate:"required,min=2,max=50"`
-	Status    string    `gorm:"size:20" validate:"required,oneof=PENDING IN_PROGRESS CANCELED DONE"`
+	Status    string    `gorm:"size:20" validate:"required,oneof=PENDING IN_PROGRESS CANCELLED DONE"`
 	CreatedAt time.Time `validate:"required"`
 	Content   string    `gorm:"size:2000" validate:"required,min=2,max=500"`
 	Contacts  []Contact `validate:"min=1,dive"`
+}
+
+func (c *Campaign) Cancel() {
+	c.Status = CANCELLED
 }
 
 func NewCampaign(name, content string, emails []string) (*Campaign, error) {

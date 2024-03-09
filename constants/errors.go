@@ -10,4 +10,6 @@ var (
 	ErrStringMaxLength           = errors.New("the maximum length is exceeded")
 	ErrUnknown                   = errors.New("unknown error")
 	ErrInternalServer            = errors.New("internal server error")
+	ErrUnprocessableEntity       = errors.New("unprocessable entity")
+	ErrNotFound                  = errors.New("the resource was not found")
 )

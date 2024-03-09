@@ -37,6 +37,11 @@ func (m *mockService) FindByID(id string) (*campaign.Campaign, error) {
 	return args.Get(0).(*campaign.Campaign), args.Error(1)
 }
 
+func (m *mockService) Cancel(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
 func TestCreateCampaignShouldCreateACampaign(t *testing.T) {
 	assert := assert.New(t)
 
@@ -224,4 +229,85 @@ func TestFindCampaignByIDShouldReturnNotFoundWhenServiceReturnError(t *testing.T
 	assert.NotNil(err)
 	assert.Nil(response)
 
+}
+
+func TestCancelCampaignShouldReturnNoContent(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Cancel", mock.Anything).Return(nil)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("POST", "/campaigns/"+uuid.New().String()+"/cancel", nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.CancelCampaign(rr, req)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNoContent, status)
+	assert.Equal(response, map[string]string{"message": "campaign cancelled"})
+
+}
+
+func TestCancelCampaignShouldReturnNotFoundWhenServiceReturnNotFoundError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Cancel", mock.Anything).Return(constants.ErrNotFound)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("POST", "/campaigns/"+uuid.New().String()+"/cancel", nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.CancelCampaign(rr, req)
+
+	assert.Equal(http.StatusNotFound, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+}
+
+func TestCancelCampaignShouldReturnUnprocessableEntityWhenServiceReturnUnprocessableEntityError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Cancel", mock.Anything).Return(constants.ErrUnprocessableEntity)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("POST", "/campaigns/"+uuid.New().String()+"/cancel", nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.CancelCampaign(rr, req)
+
+	assert.Equal(http.StatusUnprocessableEntity, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+}
+
+func TestCancelCampaignShouldReturnInternalServerErrorWhenServiceReturnError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Cancel", mock.Anything).Return(errors.New("error"))
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("POST", "/campaigns/"+uuid.New().String()+"/cancel", nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.CancelCampaign(rr, req)
+
+	assert.Equal(http.StatusInternalServerError, status)
+	assert.NotNil(err)
+	assert.Nil(response)
 }
