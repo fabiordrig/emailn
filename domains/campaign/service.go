@@ -28,7 +28,7 @@ func (s *ServiceImp) Create(newCampaign contracts.NewCampaign) (*Campaign, error
 		return nil, err
 	}
 
-	err = s.Repository.Save(campaign)
+	err = s.Repository.Create(campaign)
 
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (s *ServiceImp) Cancel(id string) error {
 		return constants.ErrUnprocessableEntity
 	}
 	existentCampaign.Cancel()
-	err = s.Repository.Save(existentCampaign)
+	err = s.Repository.Update(existentCampaign)
 
 	if err != nil {
 		return constants.ErrInternalServer
@@ -77,7 +77,7 @@ func (s *ServiceImp) Delete(id string) error {
 		return constants.ErrUnprocessableEntity
 	}
 	campaign.Delete()
-	err = s.Repository.Save(campaign)
+	err = s.Repository.Delete(campaign)
 
 	if err != nil {
 		return constants.ErrInternalServer

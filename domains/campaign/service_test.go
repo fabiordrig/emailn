@@ -18,7 +18,7 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) Save(campaign *campaign.Campaign) error {
+func (m *MockRepository) Create(campaign *campaign.Campaign) error {
 	args := m.Called(campaign)
 	return args.Error(0)
 }
@@ -33,6 +33,16 @@ func (m *MockRepository) FindByID(id string) (*campaign.Campaign, error) {
 	return args.Get(0).(*campaign.Campaign), args.Error(1)
 }
 
+func (m *MockRepository) Update(campaign *campaign.Campaign) error {
+	args := m.Called(campaign)
+	return args.Error(0)
+}
+
+func (m *MockRepository) Delete(campaign *campaign.Campaign) error {
+	args := m.Called(campaign)
+	return args.Error(0)
+}
+
 var (
 	newCampaign = contracts.NewCampaign{
 		Name:    "test",
@@ -43,10 +53,10 @@ var (
 	service  = campaign.NewService(repoMock)
 )
 
-func TestCreateCampaign(t *testing.T) {
+func TestNewCreateCampaign(t *testing.T) {
 	assert := assert.New(t)
 
-	repoMock.On("Save", mock.Anything).Return(nil)
+	repoMock.On("Create", mock.Anything).Return(nil)
 
 	campaign, err := service.Create(newCampaign)
 
@@ -59,10 +69,10 @@ func TestCreateCampaign(t *testing.T) {
 
 }
 
-func TestSaveCampaign(t *testing.T) {
+func TestCreateCampaign(t *testing.T) {
 	assert := assert.New(t)
 
-	repoMock.On("Save", mock.MatchedBy(func(campaign *campaign.Campaign) bool {
+	repoMock.On("Create", mock.MatchedBy(func(campaign *campaign.Campaign) bool {
 
 		if campaign.Name != newCampaign.Name {
 			return false
@@ -83,11 +93,11 @@ func TestSaveCampaign(t *testing.T) {
 
 }
 
-func TestSaveCampaignError(t *testing.T) {
+func TestCreateCampaignError(t *testing.T) {
 	assert := assert.New(t)
 
 	errorRepoMock := new(MockRepository)
-	errorRepoMock.On("Save", mock.Anything).Return(errors.New("error"))
+	errorRepoMock.On("Create", mock.Anything).Return(errors.New("error"))
 
 	errorService := campaign.NewService(errorRepoMock)
 
@@ -337,7 +347,7 @@ func TestCancelCampaignCorrect(t *testing.T) {
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 
-	errorRepoMock.On("Save", mock.Anything).Return(nil)
+	errorRepoMock.On("Update", mock.Anything).Return(nil)
 
 	errorService := campaign.NewService(errorRepoMock)
 
@@ -376,7 +386,7 @@ func TestCancelCampaignStatusError(t *testing.T) {
 	}
 
 	repoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
-	repoMock.On("Save", mock.Anything).Return(errors.New("error"))
+	repoMock.On("Update", mock.Anything).Return(errors.New("error"))
 
 	err := service.Cancel(uuid.New().String())
 
@@ -401,7 +411,7 @@ func TestCancelCampaignError(t *testing.T) {
 
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
-	errorRepoMock.On("Save", mock.Anything).Return(errors.New("error"))
+	errorRepoMock.On("Update", mock.Anything).Return(errors.New("error"))
 
 	errorService := campaign.NewService(errorRepoMock)
 
@@ -425,14 +435,14 @@ func TestDeleteCampaignCorrect(t *testing.T) {
 			},
 		},
 	}
-	errorRepoMock := new(MockRepository)
-	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 
-	errorRepoMock.On("Save", mock.Anything).Return(nil)
+	newRepoMock := new(MockRepository)
+	newRepoMock.On("FindByID", mockedCampaign.ID.String()).Return(&mockedCampaign, nil)
+	newRepoMock.On("Delete", &mockedCampaign).Return(nil)
 
-	errorService := campaign.NewService(errorRepoMock)
+	newService := campaign.NewService(newRepoMock)
 
-	err := errorService.Delete("id")
+	err := newService.Delete(mockedCampaign.ID.String())
 
 	assert.Nil(err)
 }
@@ -494,7 +504,7 @@ func TestDeleteCampaignError(t *testing.T) {
 
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
-	errorRepoMock.On("Save", mock.Anything).Return(errors.New("error"))
+	errorRepoMock.On("Delete", mock.Anything).Return(errors.New("error"))
 
 	errorService := campaign.NewService(errorRepoMock)
 

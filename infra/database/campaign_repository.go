@@ -10,8 +10,8 @@ type CampaignRepository struct {
 	Db *gorm.DB
 }
 
-func (c *CampaignRepository) Save(campaign *campaign.Campaign) error {
-	tx := c.Db.Save(campaign)
+func (c *CampaignRepository) Create(campaign *campaign.Campaign) error {
+	tx := c.Db.Create(campaign)
 	return tx.Error
 }
 
@@ -34,5 +34,10 @@ func (c *CampaignRepository) FindByID(id string) (*campaign.Campaign, error) {
 
 func (c *CampaignRepository) Update(campaign *campaign.Campaign) error {
 	tx := c.Db.Save(campaign)
+	return tx.Error
+}
+
+func (c *CampaignRepository) Delete(campaign *campaign.Campaign) error {
+	tx := c.Db.Select("Contacts").Delete(campaign)
 	return tx.Error
 }
