@@ -78,3 +78,25 @@ func (h *Handler) CancelCampaign(w http.ResponseWriter, r *http.Request) (interf
 	return nil, status, err
 
 }
+
+func (h *Handler) DeleteCampaign(w http.ResponseWriter, r *http.Request) (interface{}, int, error) {
+	id := r.PathValue("id")
+
+	err := h.CampaignService.Delete(id)
+
+	if err == nil {
+		return map[string]string{"message": "campaign deleted"}, http.StatusNoContent, nil
+	}
+
+	var status int
+	switch {
+	case errors.Is(err, constants.ErrNotFound):
+		status = http.StatusNotFound
+	case errors.Is(err, constants.ErrUnprocessableEntity):
+		status = http.StatusUnprocessableEntity
+	default:
+		status = http.StatusInternalServerError
+	}
+
+	return nil, status, err
+}

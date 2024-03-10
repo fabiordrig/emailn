@@ -409,3 +409,96 @@ func TestCancelCampaignError(t *testing.T) {
 
 	assert.Equal(err, constants.ErrInternalServer)
 }
+
+func TestDeleteCampaignCorrect(t *testing.T) {
+	assert := assert.New(t)
+	fake := faker.New()
+
+	mockedCampaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Lorem().Text(10),
+		Content: fake.Lorem().Text(400),
+		Status:  campaign.PENDING,
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+	errorRepoMock := new(MockRepository)
+	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
+
+	errorRepoMock.On("Save", mock.Anything).Return(nil)
+
+	errorService := campaign.NewService(errorRepoMock)
+
+	err := errorService.Delete("id")
+
+	assert.Nil(err)
+}
+
+func TestDeleteCampaignFindByIdError(t *testing.T) {
+	assert := assert.New(t)
+
+	errorRepoMock := new(MockRepository)
+	errorRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
+
+	errorService := campaign.NewService(errorRepoMock)
+
+	err := errorService.Delete(uuid.New().String())
+
+	assert.Equal(err, constants.ErrNotFound)
+}
+
+func TestDeleteCampaignStatusWhenCampaignIsInProgress(t *testing.T) {
+	assert := assert.New(t)
+	fake := faker.New()
+
+	mockedCampaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Lorem().Text(10),
+		Content: fake.Lorem().Text(400),
+		Status:  campaign.IN_PROGRESS,
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+
+	errorRepoMock := new(MockRepository)
+	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
+
+	errorService := campaign.NewService(errorRepoMock)
+
+	err := errorService.Delete(uuid.New().String())
+
+	assert.Equal(err, constants.ErrUnprocessableEntity)
+}
+
+func TestDeleteCampaignError(t *testing.T) {
+	assert := assert.New(t)
+	fake := faker.New()
+
+	mockedCampaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Lorem().Text(10),
+		Content: fake.Lorem().Text(400),
+		Status:  campaign.PENDING,
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+
+	errorRepoMock := new(MockRepository)
+	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
+	errorRepoMock.On("Save", mock.Anything).Return(errors.New("error"))
+
+	errorService := campaign.NewService(errorRepoMock)
+
+	err := errorService.Delete(uuid.New().String())
+
+	assert.Equal(err, constants.ErrInternalServer)
+}

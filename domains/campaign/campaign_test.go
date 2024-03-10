@@ -129,3 +129,23 @@ func TestNewCampaignInvalidEmailError2(t *testing.T) {
 	assert.Nil(campaign)
 	assert.Equal(err, constants.ErrStringMinLength)
 }
+
+func TestShouldCancelCampaign(t *testing.T) {
+	assert := assert.New(t)
+
+	campaign, _ := campaign.NewCampaign(name, content, emails)
+
+	campaign.Cancel()
+
+	assert.Equal("CANCELLED", campaign.Status)
+}
+
+func TestShouldDeleteCampaign(t *testing.T) {
+	assert := assert.New(t)
+
+	campaign, _ := campaign.NewCampaign(name, content, emails)
+
+	campaign.Delete()
+
+	assert.Equal("DELETED", campaign.Status)
+}

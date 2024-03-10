@@ -42,6 +42,11 @@ func (m *mockService) Cancel(id string) error {
 	return args.Error(0)
 }
 
+func (m *mockService) Delete(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
 func TestCreateCampaignShouldCreateACampaign(t *testing.T) {
 	assert := assert.New(t)
 
@@ -306,6 +311,87 @@ func TestCancelCampaignShouldReturnInternalServerErrorWhenServiceReturnError(t *
 	rr := httptest.NewRecorder()
 
 	response, status, err := handler.CancelCampaign(rr, req)
+
+	assert.Equal(http.StatusInternalServerError, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+}
+
+func TestDeleteCampaignShouldReturnNoContent(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Delete", mock.Anything).Return(nil)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("DELETE", "/campaigns/"+uuid.New().String(), nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.DeleteCampaign(rr, req)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNoContent, status)
+	assert.Equal(response, map[string]string{"message": "campaign deleted"})
+
+}
+
+func TestDeleteCampaignShouldReturnNotFoundWhenServiceReturnNotFoundError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Delete", mock.Anything).Return(constants.ErrNotFound)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("DELETE", "/campaigns/"+uuid.New().String(), nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.DeleteCampaign(rr, req)
+
+	assert.Equal(http.StatusNotFound, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+}
+
+func TestDeleteCampaignShouldReturnUnprocessableEntityWhenServiceReturnUnprocessableEntityError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Delete", mock.Anything).Return(constants.ErrUnprocessableEntity)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("DELETE", "/campaigns/"+uuid.New().String(), nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.DeleteCampaign(rr, req)
+
+	assert.Equal(http.StatusUnprocessableEntity, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+}
+
+func TestDeleteCampaignShouldReturnInternalServerErrorWhenServiceReturnError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Delete", mock.Anything).Return(errors.New("error"))
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("DELETE", "/campaigns/"+uuid.New().String(), nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.DeleteCampaign(rr, req)
 
 	assert.Equal(http.StatusInternalServerError, status)
 	assert.NotNil(err)

@@ -10,6 +10,7 @@ type Service interface {
 	FindAll() ([]Campaign, error)
 	FindByID(id string) (*Campaign, error)
 	Cancel(id string) error
+	Delete(id string) error
 }
 
 type ServiceImp struct {
@@ -57,6 +58,26 @@ func (s *ServiceImp) Cancel(id string) error {
 	}
 	existentCampaign.Cancel()
 	err = s.Repository.Save(existentCampaign)
+
+	if err != nil {
+		return constants.ErrInternalServer
+	}
+
+	return nil
+}
+
+func (s *ServiceImp) Delete(id string) error {
+	campaign, err := s.Repository.FindByID(id)
+
+	if err != nil {
+		return constants.ErrNotFound
+	}
+
+	if campaign.Status != PENDING {
+		return constants.ErrUnprocessableEntity
+	}
+	campaign.Delete()
+	err = s.Repository.Save(campaign)
 
 	if err != nil {
 		return constants.ErrInternalServer
