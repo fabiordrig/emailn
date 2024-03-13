@@ -3,6 +3,7 @@ package main
 import (
 	"emailn/domains/campaign"
 	"emailn/domains/routes"
+	"emailn/domains/routes/middlewares"
 	"emailn/infra/database"
 	"net/http"
 
@@ -18,6 +19,7 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(middlewares.AuthMiddleware)
 
 	db := database.NewDb()
 	service := campaign.NewService(&database.CampaignRepository{
