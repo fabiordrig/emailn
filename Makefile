@@ -9,3 +9,9 @@ coverage:
 	@echo "Running coverage..."
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
+
+build:
+	@echo "Building..."
+
+
+PHONY: test coverage build
