@@ -12,6 +12,7 @@ coverage:
 
 build:
 	@echo "Building..."
+	go build -o bin/$(APP_NAME) main.go
 
 
 PHONY: test coverage build
