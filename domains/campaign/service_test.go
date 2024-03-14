@@ -45,9 +45,10 @@ func (m *MockRepository) Delete(campaign *campaign.Campaign) error {
 
 var (
 	newCampaign = contracts.NewCampaign{
-		Name:    "test",
-		Content: "content",
-		Emails:  []string{"test@t.com"},
+		Name:      "test",
+		Content:   "content",
+		Emails:    []string{"test@t.com"},
+		CreatedBy: "test@t.com",
 	}
 	repoMock = new(MockRepository)
 	service  = campaign.NewService(repoMock)
@@ -224,13 +225,14 @@ func TestCreateCampaignValidateCorrect(t *testing.T) {
 	assert := assert.New(t)
 	fake := faker.New()
 
-	newCampaign := contracts.NewCampaign{
-		Name:    fake.Lorem().Text(10),
-		Content: fake.Lorem().Text(400),
-		Emails:  []string{fake.Internet().Email()},
+	mock := contracts.NewCampaign{
+		Name:      fake.Lorem().Text(10),
+		Content:   fake.Lorem().Text(400),
+		Emails:    []string{fake.Internet().Email()},
+		CreatedBy: fake.Internet().Email(),
 	}
 
-	_, err := service.Create(newCampaign)
+	_, err := service.Create(mock)
 
 	assert.Nil(err)
 }

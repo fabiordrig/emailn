@@ -22,7 +22,7 @@ func NewService(repo Repository) *ServiceImp {
 }
 
 func (s *ServiceImp) Create(newCampaign contracts.NewCampaign) (*Campaign, error) {
-	campaign, err := NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails)
+	campaign, err := NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails, newCampaign.CreatedBy)
 
 	if err != nil {
 		return nil, err

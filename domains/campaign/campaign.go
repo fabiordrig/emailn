@@ -29,6 +29,7 @@ type Campaign struct {
 	CreatedAt time.Time `validate:"required"`
 	Content   string    `gorm:"size:2000" validate:"required,min=2,max=500"`
 	Contacts  []Contact `validate:"min=1,dive"`
+	CreatedBy string    `gorm:"size:60" validate:"required,email"`
 }
 
 func (c *Campaign) Cancel() {
@@ -39,7 +40,7 @@ func (c *Campaign) Delete() {
 	c.Status = DELETED
 }
 
-func NewCampaign(name, content string, emails []string) (*Campaign, error) {
+func NewCampaign(name, content string, emails []string, createdBy string) (*Campaign, error) {
 
 	contacts := make([]Contact, len(emails))
 	id := uuid.New()
@@ -56,6 +57,7 @@ func NewCampaign(name, content string, emails []string) (*Campaign, error) {
 		CreatedAt: time.Now(),
 		Content:   content,
 		Contacts:  contacts,
+		CreatedBy: createdBy,
 	}
 
 	err := domains.ValidateStruct(campaign)
