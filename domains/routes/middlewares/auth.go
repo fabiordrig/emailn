@@ -15,6 +15,14 @@ type Handler struct {
 	CampaignService campaign.Service
 }
 
+type TokenVerifier interface {
+	VerifyToken(ctx context.Context, token string) (*TokenClaims, error)
+}
+
+type TokenClaims struct {
+	Email string
+}
+
 type RouterFunc func(w http.ResponseWriter, r *http.Request) (interface{}, int, error)
 
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -35,9 +43,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		provider, err := oidc.NewProvider(r.Context(), "http://localhost:8080/realms/provider")
 
 		if err != nil {
-			render.Status(r, http.StatusInternalServerError)
+			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, map[string]string{
-				"error": "Internal Server Error",
+				"error": "Invalid token",
 			})
 			return
 		}

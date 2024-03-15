@@ -35,5 +35,5 @@ func TestAuthMiddleware_InvalidToken(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
-	assert.Equal(t, "{\"error\":\"Unauthorized\"}\n", rr.Body.String())
+	assert.Equal(t, "{\"error\":\"Invalid token\"}\n", rr.Body.String())
 }
