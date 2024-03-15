@@ -1,12 +1,14 @@
 package middlewares
 
 import (
+	"context"
 	"emailn/domains/campaign"
 	"net/http"
 	"strings"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/render"
+	jwtGo "github.com/golang-jwt/jwt/v5"
 )
 
 type Handler struct {
@@ -50,6 +52,12 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		value, _ := jwtGo.Parse(token, nil)
+		claims := value.Claims.(jwtGo.MapClaims)
+		email := claims["email"]
+
+		ctx := context.WithValue(r.Context(), "email", email)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -14,6 +14,10 @@ func (h *Handler) CreateCampaign(w http.ResponseWriter, r *http.Request) (interf
 	var payload contracts.NewCampaign
 	render.DecodeJSON(r.Body, &payload)
 
+	email := r.Context().Value("email").(string)
+
+	payload.CreatedBy = email
+
 	campaign, err := h.CampaignService.Create(payload)
 
 	if err != nil {
