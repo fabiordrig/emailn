@@ -9,10 +9,16 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
+	err := godotenv.Load()
+
+	if err != nil {
+		panic("Error loading .env file")
+	}
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)

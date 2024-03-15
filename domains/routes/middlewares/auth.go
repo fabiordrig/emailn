@@ -4,6 +4,7 @@ import (
 	"context"
 	"emailn/domains/campaign"
 	"net/http"
+	"os"
 	"strings"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"
@@ -40,7 +41,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		token = strings.Replace(token, "Bearer ", "", 1)
 
-		provider, err := oidc.NewProvider(r.Context(), "http://localhost:8080/realms/provider")
+		keyCloakURL := os.Getenv("KEY_CLOAK_URL")
+		keyCloakClientID := os.Getenv("KEY_CLOAK_CLIENT_ID")
+		provider, err := oidc.NewProvider(r.Context(), keyCloakURL)
 
 		if err != nil {
 			render.Status(r, http.StatusUnauthorized)
@@ -50,7 +53,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		_, err = provider.Verifier(&oidc.Config{ClientID: "emailn"}).Verify(r.Context(), token)
+		_, err = provider.Verifier(&oidc.Config{ClientID: keyCloakClientID}).Verify(r.Context(), token)
 
 		if err != nil {
 			render.Status(r, http.StatusUnauthorized)
