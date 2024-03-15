@@ -2,6 +2,7 @@ package routes_test
 
 import (
 	"bytes"
+	"context"
 	"emailn/constants"
 	"emailn/contracts"
 	"emailn/domains/campaign"
@@ -47,15 +48,19 @@ func (m *mockService) Delete(id string) error {
 	return args.Error(0)
 }
 
+var (
+	fake      = faker.New()
+	createdBy = fake.Internet().Email()
+)
+
 func TestCreateCampaignShouldCreateACampaign(t *testing.T) {
 	assert := assert.New(t)
 
-	fake := faker.New()
-
 	newCampaign := contracts.NewCampaign{
-		Name:    fake.Beer().Name(),
-		Content: fake.Beer().Alcohol(),
-		Emails:  []string{fake.Internet().Email()},
+		Name:      fake.Beer().Name(),
+		Content:   fake.Beer().Alcohol(),
+		Emails:    []string{fake.Internet().Email()},
+		CreatedBy: createdBy,
 	}
 
 	serviceMock := new(mockService)
@@ -78,6 +83,8 @@ func TestCreateCampaignShouldCreateACampaign(t *testing.T) {
 	json.NewEncoder(&buffer).Encode(newCampaign)
 
 	req, _ := http.NewRequest("POST", "/campaign", &buffer)
+	ctx := context.WithValue(req.Context(), "email", createdBy)
+	req = req.WithContext(ctx)
 	rr := httptest.NewRecorder()
 
 	response, status, err := handler.CreateCampaign(rr, req)
@@ -90,8 +97,6 @@ func TestCreateCampaignShouldCreateACampaign(t *testing.T) {
 
 func TestCreateCampaignShouldReturnBadRequestWhenServiceReturnError(t *testing.T) {
 	assert := assert.New(t)
-
-	fake := faker.New()
 
 	newCampaign := contracts.NewCampaign{
 		Name:    fake.Beer().Name(),
@@ -112,6 +117,8 @@ func TestCreateCampaignShouldReturnBadRequestWhenServiceReturnError(t *testing.T
 	json.NewEncoder(&buffer).Encode(newCampaign)
 
 	req, _ := http.NewRequest("POST", "/campaign", &buffer)
+	ctx := context.WithValue(req.Context(), "email", createdBy)
+	req = req.WithContext(ctx)
 	rr := httptest.NewRecorder()
 
 	response, status, err := handler.CreateCampaign(rr, req)
