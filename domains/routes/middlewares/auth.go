@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"context"
-	"emailn/domains/campaign"
 	"net/http"
 	"os"
 	"strings"
@@ -11,20 +10,6 @@ import (
 	"github.com/go-chi/render"
 	jwtGo "github.com/golang-jwt/jwt/v5"
 )
-
-type Handler struct {
-	CampaignService campaign.Service
-}
-
-type TokenVerifier interface {
-	VerifyToken(ctx context.Context, token string) (*TokenClaims, error)
-}
-
-type TokenClaims struct {
-	Email string
-}
-
-type RouterFunc func(w http.ResponseWriter, r *http.Request) (interface{}, int, error)
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
