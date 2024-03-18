@@ -19,6 +19,7 @@ func main() {
 	if err != nil {
 		panic("Error loading .env file")
 	}
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
