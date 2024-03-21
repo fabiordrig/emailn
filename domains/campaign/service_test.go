@@ -514,3 +514,56 @@ func TestDeleteCampaignError(t *testing.T) {
 
 	assert.Equal(err, constants.ErrInternalServer)
 }
+
+func TestStartCampaign(t *testing.T) {
+	assert := assert.New(t)
+
+	fake := faker.New()
+
+	mockedCampaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Lorem().Text(10),
+		Content: fake.Lorem().Text(400),
+		Status:  campaign.PENDING,
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+
+	newRepoMock := new(MockRepository)
+
+	newService := campaign.NewService(newRepoMock)
+
+	err := newService.Start(mockedCampaign.ID.String())
+
+	assert.Nil(err)
+}
+
+func TestStartCampaignError(t *testing.T) {
+	assert := assert.New(t)
+
+	fake := faker.New()
+
+	mockedCampaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Lorem().Text(10),
+		Content: fake.Lorem().Text(400),
+		Status:  campaign.IN_PROGRESS,
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+
+	newRepoMock := new(MockRepository)
+	newRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
+
+	newService := campaign.NewService(newRepoMock)
+
+	err := newService.Start(mockedCampaign.ID.String())
+
+	assert.Equal(err, constants.ErrNotFound)
+}

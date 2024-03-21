@@ -85,3 +85,13 @@ func (s *ServiceImp) Delete(id string) error {
 
 	return nil
 }
+
+func (s *ServiceImp) Start(id string) error {
+
+	_, err := s.Repository.FindByID(id)
+
+	if err != nil {
+		return constants.ErrNotFound
+	}
+	return nil
+}
