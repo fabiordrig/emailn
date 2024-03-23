@@ -1,4 +1,4 @@
-include .env.local
+include .env
 
 
 test:

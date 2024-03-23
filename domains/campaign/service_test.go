@@ -533,6 +533,7 @@ func TestStartCampaign(t *testing.T) {
 	}
 
 	newRepoMock := new(MockRepository)
+	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 
 	newService := campaign.NewService(newRepoMock)
 
@@ -542,6 +543,19 @@ func TestStartCampaign(t *testing.T) {
 }
 
 func TestStartCampaignError(t *testing.T) {
+	assert := assert.New(t)
+
+	newRepoMock := new(MockRepository)
+	newRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
+
+	newService := campaign.NewService(newRepoMock)
+
+	err := newService.Start("1")
+
+	assert.Equal(err, constants.ErrNotFound)
+}
+
+func TestStartCampaignErrorStatus(t *testing.T) {
 	assert := assert.New(t)
 
 	fake := faker.New()
@@ -559,11 +573,11 @@ func TestStartCampaignError(t *testing.T) {
 	}
 
 	newRepoMock := new(MockRepository)
-	newRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
+	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 
 	newService := campaign.NewService(newRepoMock)
 
 	err := newService.Start(mockedCampaign.ID.String())
 
-	assert.Equal(err, constants.ErrNotFound)
+	assert.Equal(err, constants.ErrUnprocessableEntity)
 }
