@@ -96,5 +96,10 @@ func (s *ServiceImp) Start(id string) error {
 	if campaign.Status != PENDING {
 		return constants.ErrUnprocessableEntity
 	}
-	return nil
+
+	campaign.Status = IN_PROGRESS
+
+	err = s.Repository.Update(campaign)
+
+	return err
 }
