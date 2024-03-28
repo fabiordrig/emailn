@@ -610,3 +610,58 @@ func TestStartCampaignErrorUpdate(t *testing.T) {
 
 	assert.Equal(err, errors.New("error"))
 }
+
+func TestShouldSendEmail(t *testing.T) {
+	assert := assert.New(t)
+	fake := faker.New()
+
+	mockedCampaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Lorem().Text(10),
+		Content: fake.Lorem().Text(400),
+		Status:  campaign.PENDING,
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+
+	newRepoMock := new(MockRepository)
+	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
+
+	newService := campaign.NewService(newRepoMock)
+
+	err := newService.SendEmail(&mockedCampaign)
+
+	assert.Nil(err)
+}
+
+func TestShouldSendEmailError(t *testing.T) {
+	assert := assert.New(t)
+	fake := faker.New()
+
+	mockedCampaign := campaign.Campaign{
+		ID:      uuid.New(),
+		Name:    fake.Lorem().Text(10),
+		Content: fake.Lorem().Text(400),
+		Status:  campaign.PENDING,
+		Contacts: []campaign.Contact{
+			{
+				Email: fake.Internet().Email(),
+			},
+		},
+	}
+
+	newRepoMock := new(MockRepository)
+	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
+
+	newService := campaign.NewService(newRepoMock)
+	newService.SendEmail = func(campaign *campaign.Campaign) error {
+		return errors.New("error")
+	}
+
+	err := newService.SendEmail(&mockedCampaign)
+
+	assert.NotNil(err)
+}

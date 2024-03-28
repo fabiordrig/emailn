@@ -15,10 +15,13 @@ type Service interface {
 
 type ServiceImp struct {
 	Repository Repository
+	SendEmail  func(campaign *Campaign) error
 }
 
 func NewService(repo Repository) *ServiceImp {
-	return &ServiceImp{Repository: repo}
+	return &ServiceImp{Repository: repo, SendEmail: func(campaign *Campaign) error {
+		return nil
+	}}
 }
 
 func (s *ServiceImp) Create(newCampaign contracts.NewCampaign) (*Campaign, error) {
@@ -98,6 +101,8 @@ func (s *ServiceImp) Start(id string) error {
 	}
 
 	campaign.Status = IN_PROGRESS
+
+	s.SendEmail(campaign)
 
 	err = s.Repository.Update(campaign)
 
