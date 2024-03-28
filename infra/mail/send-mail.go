@@ -1,3 +1,4 @@
+// mail/send.go
 package mail
 
 import (
@@ -7,23 +8,28 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-func SendEmail(campaign *campaign.Campaign) error {
+type SMTPSender struct {
+	Dialer *gomail.Dialer
+}
+
+func NewSMTPSender() *SMTPSender {
+	return &SMTPSender{
+		Dialer: gomail.NewDialer(os.Getenv("MAIL_HOST"), 587, os.Getenv("MAIL_USER"), os.Getenv("MAIL_PASSWORD")),
+	}
+}
+
+func (s *SMTPSender) SendEmail(c *campaign.Campaign) error {
 	m := gomail.NewMessage()
 
-	d := gomail.NewDialer(os.Getenv("MAIL_HOST"), 587, os.Getenv("MAIL_USER"), os.Getenv("MAIL_PASSWORD"))
-
 	var emails []string
-
-	for _, contact := range campaign.Contacts {
+	for _, contact := range c.Contacts {
 		emails = append(emails, contact.Email)
 	}
 
 	m.SetHeader("From", os.Getenv("MAIL_USER"))
-	m.SetHeader("Subject", campaign.Name)
+	m.SetHeader("Subject", c.Name)
 	m.SetHeader("To", emails...)
+	m.SetBody("text/html", c.Content)
 
-	m.SetBody("text/html", campaign.Content)
-
-	return d.DialAndSend(m)
-
+	return s.Dialer.DialAndSend(m)
 }

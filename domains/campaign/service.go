@@ -13,15 +13,16 @@ type Service interface {
 	Delete(id string) error
 }
 
+type EmailSender interface {
+	SendEmail(campaign *Campaign) error
+}
 type ServiceImp struct {
-	Repository Repository
-	SendEmail  func(campaign *Campaign) error
+	Repository  Repository
+	EmailSender EmailSender
 }
 
-func NewService(repo Repository) *ServiceImp {
-	return &ServiceImp{Repository: repo, SendEmail: func(campaign *Campaign) error {
-		return nil
-	}}
+func NewService(repo Repository, emailSender EmailSender) *ServiceImp {
+	return &ServiceImp{Repository: repo, EmailSender: emailSender}
 }
 
 func (s *ServiceImp) Create(newCampaign contracts.NewCampaign) (*Campaign, error) {
@@ -100,9 +101,13 @@ func (s *ServiceImp) Start(id string) error {
 		return constants.ErrUnprocessableEntity
 	}
 
-	campaign.Status = IN_PROGRESS
+	campaign.Status = DONE
 
-	s.SendEmail(campaign)
+	err = s.EmailSender.SendEmail(campaign)
+
+	if err != nil {
+		return constants.ErrInternalServer
+	}
 
 	err = s.Repository.Update(campaign)
 

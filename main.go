@@ -5,6 +5,7 @@ import (
 	"emailn/domains/routes"
 	"emailn/domains/routes/middlewares"
 	"emailn/infra/database"
+	"emailn/infra/mail"
 	"net/http"
 
 	"github.com/go-chi/chi/middleware"
@@ -28,9 +29,12 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	db := database.NewDb()
+	emailSender := mail.NewSMTPSender()
 	service := campaign.NewService(&database.CampaignRepository{
 		Db: db,
-	})
+	},
+		emailSender,
+	)
 	handler := routes.Handler{
 		CampaignService: service,
 	}

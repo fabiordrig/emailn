@@ -43,6 +43,15 @@ func (m *MockRepository) Delete(campaign *campaign.Campaign) error {
 	return args.Error(0)
 }
 
+type MockEmailSender struct {
+	mock.Mock
+}
+
+func (m *MockEmailSender) SendEmail(campaign *campaign.Campaign) error {
+	args := m.Called(campaign)
+	return args.Error(0)
+}
+
 var (
 	newCampaign = contracts.NewCampaign{
 		Name:      "test",
@@ -50,8 +59,9 @@ var (
 		Emails:    []string{"test@t.com"},
 		CreatedBy: "test@t.com",
 	}
-	repoMock = new(MockRepository)
-	service  = campaign.NewService(repoMock)
+	repoMock  = new(MockRepository)
+	emailMock = new(MockEmailSender)
+	service   = campaign.NewService(repoMock, emailMock)
 )
 
 func TestNewCreateCampaign(t *testing.T) {
@@ -100,7 +110,7 @@ func TestCreateCampaignError(t *testing.T) {
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("Create", mock.Anything).Return(errors.New("error"))
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	_, err := errorService.Create(newCampaign)
 
@@ -286,7 +296,7 @@ func TestFindAllCampaignError(t *testing.T) {
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("FindAll").Return([]campaign.Campaign{}, errors.New("error"))
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	_, err := errorService.FindAll()
 
@@ -324,7 +334,7 @@ func TestFindCampaignByIDError(t *testing.T) {
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	_, err := errorService.FindByID(uuid.New().String())
 
@@ -351,7 +361,7 @@ func TestCancelCampaignCorrect(t *testing.T) {
 
 	errorRepoMock.On("Update", mock.Anything).Return(nil)
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	err := errorService.Cancel("id")
 
@@ -364,7 +374,7 @@ func TestCancelCampaignFindByIdError(t *testing.T) {
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	err := errorService.Cancel(uuid.New().String())
 
@@ -415,7 +425,7 @@ func TestCancelCampaignError(t *testing.T) {
 	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 	errorRepoMock.On("Update", mock.Anything).Return(errors.New("error"))
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	err := errorService.Cancel(uuid.New().String())
 
@@ -442,7 +452,7 @@ func TestDeleteCampaignCorrect(t *testing.T) {
 	newRepoMock.On("FindByID", mockedCampaign.ID.String()).Return(&mockedCampaign, nil)
 	newRepoMock.On("Delete", &mockedCampaign).Return(nil)
 
-	newService := campaign.NewService(newRepoMock)
+	newService := campaign.NewService(newRepoMock, emailMock)
 
 	err := newService.Delete(mockedCampaign.ID.String())
 
@@ -455,7 +465,7 @@ func TestDeleteCampaignFindByIdError(t *testing.T) {
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	err := errorService.Delete(uuid.New().String())
 
@@ -481,7 +491,7 @@ func TestDeleteCampaignStatusWhenCampaignIsInProgress(t *testing.T) {
 	errorRepoMock := new(MockRepository)
 	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	err := errorService.Delete(uuid.New().String())
 
@@ -508,7 +518,7 @@ func TestDeleteCampaignError(t *testing.T) {
 	errorRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 	errorRepoMock.On("Delete", mock.Anything).Return(errors.New("error"))
 
-	errorService := campaign.NewService(errorRepoMock)
+	errorService := campaign.NewService(errorRepoMock, emailMock)
 
 	err := errorService.Delete(uuid.New().String())
 
@@ -536,7 +546,9 @@ func TestStartCampaign(t *testing.T) {
 	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 	newRepoMock.On("Update", mock.Anything).Return(nil)
 
-	newService := campaign.NewService(newRepoMock)
+	emailMock.On("SendEmail", mock.Anything).Return(nil)
+
+	newService := campaign.NewService(newRepoMock, emailMock)
 
 	err := newService.Start(mockedCampaign.ID.String())
 
@@ -549,7 +561,7 @@ func TestStartCampaignError(t *testing.T) {
 	newRepoMock := new(MockRepository)
 	newRepoMock.On("FindByID", mock.Anything).Return(&campaign.Campaign{}, errors.New("error"))
 
-	newService := campaign.NewService(newRepoMock)
+	newService := campaign.NewService(newRepoMock, emailMock)
 
 	err := newService.Start("1")
 
@@ -576,7 +588,7 @@ func TestStartCampaignErrorStatus(t *testing.T) {
 	newRepoMock := new(MockRepository)
 	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 
-	newService := campaign.NewService(newRepoMock)
+	newService := campaign.NewService(newRepoMock, emailMock)
 
 	err := newService.Start(mockedCampaign.ID.String())
 
@@ -604,7 +616,7 @@ func TestStartCampaignErrorUpdate(t *testing.T) {
 	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
 	newRepoMock.On("Update", mock.Anything).Return(errors.New("error"))
 
-	newService := campaign.NewService(newRepoMock)
+	newService := campaign.NewService(newRepoMock, emailMock)
 
 	err := newService.Start(mockedCampaign.ID.String())
 
@@ -629,10 +641,14 @@ func TestShouldSendEmail(t *testing.T) {
 
 	newRepoMock := new(MockRepository)
 	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
+	newRepoMock.On("Update", mock.Anything).Return(nil)
 
-	newService := campaign.NewService(newRepoMock)
+	newEmailMock := new(MockEmailSender)
+	newEmailMock.On("SendEmail", mock.Anything).Return(nil)
 
-	err := newService.SendEmail(&mockedCampaign)
+	newService := campaign.NewService(newRepoMock, newEmailMock)
+
+	err := newService.Start(mockedCampaign.ID.String())
 
 	assert.Nil(err)
 }
@@ -655,13 +671,14 @@ func TestShouldSendEmailError(t *testing.T) {
 
 	newRepoMock := new(MockRepository)
 	newRepoMock.On("FindByID", mock.Anything).Return(&mockedCampaign, nil)
+	newRepoMock.On("Update", mock.Anything).Return(nil)
 
-	newService := campaign.NewService(newRepoMock)
-	newService.SendEmail = func(campaign *campaign.Campaign) error {
-		return errors.New("error")
-	}
+	newEmailMock := new(MockEmailSender)
+	newEmailMock.On("SendEmail", mock.Anything).Return(errors.New("error"))
 
-	err := newService.SendEmail(&mockedCampaign)
+	newService := campaign.NewService(newRepoMock, newEmailMock)
 
-	assert.NotNil(err)
+	err := newService.Start(mockedCampaign.ID.String())
+
+	assert.Equal(err, constants.ErrInternalServer)
 }
