@@ -11,6 +11,7 @@ type Service interface {
 	FindByID(id string) (*Campaign, error)
 	Cancel(id string) error
 	Delete(id string) error
+	Start(id string) error
 }
 
 type EmailSender interface {

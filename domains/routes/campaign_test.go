@@ -48,6 +48,11 @@ func (m *mockService) Delete(id string) error {
 	return args.Error(0)
 }
 
+func (m *mockService) Start(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
 var (
 	fake      = faker.New()
 	createdBy = fake.Internet().Email()
@@ -399,6 +404,86 @@ func TestDeleteCampaignShouldReturnInternalServerErrorWhenServiceReturnError(t *
 	rr := httptest.NewRecorder()
 
 	response, status, err := handler.DeleteCampaign(rr, req)
+
+	assert.Equal(http.StatusInternalServerError, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+}
+
+func TestStartCampaign(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Start", mock.Anything).Return(nil)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("POST", "/campaigns/"+uuid.New().String()+"/start", nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.StartCampaign(rr, req)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNoContent, status)
+	assert.Equal(response, map[string]string{"message": "campaign started"})
+}
+
+func TestStartCampaignShouldReturnNotFoundWhenServiceReturnNotFoundError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Start", mock.Anything).Return(constants.ErrNotFound)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("POST", "/campaigns/"+uuid.New().String()+"/start", nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.StartCampaign(rr, req)
+
+	assert.Equal(http.StatusNotFound, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+}
+
+func TestStartCampaignShouldReturnUnprocessableEntityWhenServiceReturnUnprocessableEntityError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Start", mock.Anything).Return(constants.ErrUnprocessableEntity)
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("POST", "/campaigns/"+uuid.New().String()+"/start", nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.StartCampaign(rr, req)
+
+	assert.Equal(http.StatusUnprocessableEntity, status)
+	assert.NotNil(err)
+	assert.Nil(response)
+}
+
+func TestStartCampaignShouldReturnInternalServerErrorWhenServiceReturnError(t *testing.T) {
+	assert := assert.New(t)
+
+	serviceMock := new(mockService)
+	serviceMock.On("Start", mock.Anything).Return(errors.New("error"))
+
+	handler := routes.Handler{
+		CampaignService: serviceMock,
+	}
+
+	req, _ := http.NewRequest("POST", "/campaigns/"+uuid.New().String()+"/start", nil)
+	rr := httptest.NewRecorder()
+
+	response, status, err := handler.StartCampaign(rr, req)
 
 	assert.Equal(http.StatusInternalServerError, status)
 	assert.NotNil(err)
