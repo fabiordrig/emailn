@@ -112,5 +112,9 @@ func (s *ServiceImp) Start(id string) error {
 
 	err = s.Repository.Update(campaign)
 
-	return err
+	if err != nil {
+		return constants.ErrInternalServer
+	}
+
+	return nil
 }
