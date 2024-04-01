@@ -1,6 +1,9 @@
 include .env
 
 
+lint:
+	@echo "Running linter..."
+
 test:
 	@echo "Running tests..."
 	go test -v -cover ./...
@@ -13,6 +16,7 @@ coverage:
 build:
 	@echo "Building..."
 	go build -o bin/$(APP_NAME) main.go
+
 
 
 PHONY: test coverage build
